@@ -22,14 +22,92 @@ const Index = () => {
   const [selectedGame, setSelectedGame] = useState('steam');
 
   const games = [
-    { id: 'steam', name: 'Steam', icon: 'Gamepad2', loginLabel: 'Логин Steam', userIdLabel: null },
-    { id: 'roblox', name: 'Roblox', icon: 'Boxes', loginLabel: 'Username Roblox', userIdLabel: 'User ID' },
-    { id: 'pubg', name: 'PUBG Mobile', icon: 'Target', loginLabel: 'Player ID', userIdLabel: null },
-    { id: 'mlbb', name: 'Mobile Legends', icon: 'Swords', loginLabel: 'User ID', userIdLabel: 'Zone ID' },
-    { id: 'freefire', name: 'Free Fire', icon: 'Flame', loginLabel: 'Player ID', userIdLabel: null },
+    { 
+      id: 'steam', 
+      name: 'Steam', 
+      icon: 'Gamepad2', 
+      loginLabel: 'Логин Steam', 
+      userIdLabel: null,
+      currency: '₽',
+      packages: [
+        { amount: 100, label: '100₽', bonus: 0 },
+        { amount: 300, label: '300₽', bonus: 0 },
+        { amount: 500, label: '500₽', bonus: 0 },
+        { amount: 1000, label: '1000₽', bonus: 50 },
+        { amount: 2000, label: '2000₽', bonus: 100 },
+        { amount: 5000, label: '5000₽', bonus: 500 },
+      ]
+    },
+    { 
+      id: 'roblox', 
+      name: 'Roblox', 
+      icon: 'Boxes', 
+      loginLabel: 'Username Roblox', 
+      userIdLabel: 'User ID',
+      currency: 'Robux',
+      packages: [
+        { amount: 80, label: '80 Robux', bonus: 0, price: 99 },
+        { amount: 400, label: '400 Robux', bonus: 0, price: 350 },
+        { amount: 800, label: '800 Robux', bonus: 0, price: 650 },
+        { amount: 1700, label: '1700 Robux', bonus: 100, price: 1200 },
+        { amount: 4500, label: '4500 Robux', bonus: 500, price: 2999 },
+        { amount: 10000, label: '10000 Robux', bonus: 1500, price: 6499 },
+      ]
+    },
+    { 
+      id: 'pubg', 
+      name: 'PUBG Mobile', 
+      icon: 'Target', 
+      loginLabel: 'Player ID', 
+      userIdLabel: null,
+      currency: 'UC',
+      packages: [
+        { amount: 60, label: '60 UC', bonus: 0, price: 75 },
+        { amount: 325, label: '325 UC', bonus: 25, price: 380 },
+        { amount: 660, label: '660 UC', bonus: 60, price: 750 },
+        { amount: 1800, label: '1800 UC', bonus: 300, price: 1999 },
+        { amount: 3850, label: '3850 UC', bonus: 850, price: 3999 },
+        { amount: 8100, label: '8100 UC', bonus: 2100, price: 7999 },
+      ]
+    },
+    { 
+      id: 'mlbb', 
+      name: 'Mobile Legends', 
+      icon: 'Swords', 
+      loginLabel: 'User ID', 
+      userIdLabel: 'Zone ID',
+      currency: 'Diamond',
+      packages: [
+        { amount: 86, label: '86 Diamond', bonus: 0, price: 99 },
+        { amount: 172, label: '172 Diamond', bonus: 0, price: 199 },
+        { amount: 514, label: '514 Diamond', bonus: 50, price: 550 },
+        { amount: 1050, label: '1050 Diamond', bonus: 150, price: 1099 },
+        { amount: 2195, label: '2195 Diamond', bonus: 395, price: 2199 },
+        { amount: 5532, label: '5532 Diamond', bonus: 1232, price: 5499 },
+      ]
+    },
+    { 
+      id: 'freefire', 
+      name: 'Free Fire', 
+      icon: 'Flame', 
+      loginLabel: 'Player ID', 
+      userIdLabel: null,
+      currency: 'Diamond',
+      packages: [
+        { amount: 50, label: '50 Diamond', bonus: 0, price: 60 },
+        { amount: 100, label: '100 Diamond', bonus: 0, price: 115 },
+        { amount: 310, label: '310 Diamond', bonus: 10, price: 350 },
+        { amount: 520, label: '520 Diamond', bonus: 20, price: 580 },
+        { amount: 1060, label: '1060 Diamond', bonus: 60, price: 1150 },
+        { amount: 2180, label: '2180 Diamond', bonus: 180, price: 2300 },
+      ]
+    },
   ];
 
-  const popularAmounts = [100, 300, 500, 1000, 2000, 5000];
+  const getCurrentPackages = () => {
+    const game = games.find(g => g.id === selectedGame);
+    return game?.packages || [];
+  };
 
   const tariffs = [
     { 
@@ -332,23 +410,31 @@ const Index = () => {
                 )}
                 
                 <div>
-                  <Label className="text-white mb-3 block">Популярные суммы</Label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {popularAmounts.map((amount) => (
+                  <Label className="text-white mb-3 block">Популярные пакеты</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {getCurrentPackages().map((pkg, idx) => (
                       <Button
-                        key={amount}
-                        variant={selectedAmount === amount ? 'default' : 'outline'}
-                        className={`${
-                          selectedAmount === amount
+                        key={idx}
+                        variant={selectedAmount === (pkg.price || pkg.amount) ? 'default' : 'outline'}
+                        className={`flex flex-col items-start p-3 h-auto ${
+                          selectedAmount === (pkg.price || pkg.amount)
                             ? 'bg-gradient-to-r from-[#66c0f4] to-[#8bc53f] text-[#171a21] border-0'
                             : 'bg-[#2a475e] border-[#66c0f4]/30 text-white hover:bg-[#66c0f4]/20'
                         }`}
                         onClick={() => {
-                          setSelectedAmount(amount);
+                          setSelectedAmount(pkg.price || pkg.amount);
                           setCustomAmount('');
                         }}
                       >
-                        {amount}₽
+                        <span className="font-bold">{pkg.label}</span>
+                        {pkg.bonus > 0 && (
+                          <Badge className="mt-1 bg-[#8bc53f] text-[#171a21] text-xs">
+                            +{pkg.bonus} бонус
+                          </Badge>
+                        )}
+                        <span className="text-sm mt-1 opacity-80">
+                          {pkg.price ? `${pkg.price}₽` : `${pkg.amount}₽`}
+                        </span>
                       </Button>
                     ))}
                   </div>
@@ -452,52 +538,36 @@ const Index = () => {
 
         <section id="tariffs" className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">Тарифы и цены</h2>
-            <p className="text-gray-400">Выгодные предложения с бонусами</p>
+            <h2 className="text-4xl font-bold text-white mb-4">Популярные игры</h2>
+            <p className="text-gray-400">Выберите игру и пополните баланс</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {tariffs.map((tariff, idx) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+            {games.map((game, idx) => (
               <Card
-                key={tariff.id}
-                className={`relative transition-transform duration-300 hover:scale-105 ${
-                  tariff.popular
-                    ? 'bg-gradient-to-br from-[#66c0f4]/20 to-[#8bc53f]/20 border-[#8bc53f]'
-                    : 'bg-[#1b2838] border-[#66c0f4]/30'
-                }`}
+                key={game.id}
+                className="bg-[#1b2838] border-[#66c0f4]/30 transition-transform duration-300 hover:scale-105 cursor-pointer"
                 style={{ animationDelay: `${idx * 0.1}s` }}
+                onClick={() => {
+                  setSelectedGame(game.id);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               >
-                {tariff.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#66c0f4] to-[#8bc53f] text-[#171a21]">
-                    Популярный
-                  </Badge>
-                )}
                 <CardHeader>
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#66c0f4] to-[#8bc53f] rounded-full flex items-center justify-center">
-                    <Icon name={tariff.icon as any} className="text-[#171a21]" size={32} />
+                    <Icon name={game.icon as any} className="text-[#171a21]" size={32} />
                   </div>
-                  <CardTitle className="text-white text-center text-2xl">{tariff.name}</CardTitle>
+                  <CardTitle className="text-white text-center text-xl">{game.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center space-y-4">
-                  <div>
-                    <div className="text-4xl font-bold text-[#66c0f4]">{tariff.amount}₽</div>
-                    {tariff.bonus > 0 && (
-                      <div className="text-[#8bc53f] font-semibold mt-2">
-                        + {tariff.bonus}₽ бонус
-                      </div>
-                    )}
+                <CardContent className="text-center space-y-3">
+                  <div className="text-sm text-gray-400">
+                    {game.packages.length} пакетов
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    от {game.packages[0].price || game.packages[0].amount}₽
                   </div>
                   <Button
-                    className={`w-full ${
-                      tariff.popular
-                        ? 'bg-gradient-to-r from-[#66c0f4] to-[#8bc53f] text-[#171a21]'
-                        : 'bg-[#2a475e] text-white hover:bg-[#66c0f4]/20'
-                    }`}
-                    onClick={() => {
-                      setSelectedAmount(tariff.amount);
-                      setCustomAmount('');
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
+                    className="w-full bg-[#2a475e] text-white hover:bg-[#66c0f4]/20"
                   >
                     Выбрать
                   </Button>
