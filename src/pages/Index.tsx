@@ -115,7 +115,7 @@ const Index = () => {
                 <Icon name="Gamepad2" className="text-[#171a21]" size={24} />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">SteamTopUp</h1>
+                <h1 className="text-2xl font-bold text-white">BB.sell</h1>
                 <p className="text-xs text-[#66c0f4]">Быстрое пополнение баланса</p>
               </div>
             </div>
@@ -458,7 +458,7 @@ const Index = () => {
                 <Icon name="Gamepad2" className="text-[#171a21]" size={24} />
               </div>
               <div>
-                <div className="text-white font-bold">SteamTopUp</div>
+                <div className="text-white font-bold">BB.sell</div>
                 <div className="text-sm text-gray-400">© 2024 Все права защищены</div>
               </div>
             </div>
