@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "Create new top-up order",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "test@example.com",
+        "name": "Тест Пользователь",
+        "steamLogin": "testuser123",
+        "amount": 1000
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "orderId": "number",
+        "amount": 1000,
+        "bonus": 50,
+        "totalAmount": 1050,
+        "status": "completed"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get orders list",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "orders": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

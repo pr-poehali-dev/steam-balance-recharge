@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,8 +11,13 @@ import Icon from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const Index = () => {
+  const { toast } = useToast();
   const [selectedAmount, setSelectedAmount] = useState<number>(500);
   const [customAmount, setCustomAmount] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [steamLogin, setSteamLogin] = useState('');
 
   const popularAmounts = [100, 300, 500, 1000, 2000, 5000];
 
@@ -100,9 +106,73 @@ const Index = () => {
     },
   ];
 
-  const handleTopUp = () => {
+  const handleTopUp = async () => {
     const amount = customAmount ? parseInt(customAmount) : selectedAmount;
-    alert(`Пополнение на сумму ${amount}₽ в разработке. Скоро будет доступно!`);
+    
+    if (!email || !name || !steamLogin) {
+      toast({
+        title: 'Заполните все поля',
+        description: 'Пожалуйста, укажите email, имя и логин Steam',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (amount < 100) {
+      toast({
+        title: 'Минимальная сумма',
+        description: 'Минимальная сумма пополнения - 100₽',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      const response = await fetch('https://functions.poehali.dev/854d4aad-37fb-4211-97ee-94c6bc04c8f6', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          name,
+          steamLogin,
+          amount
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: '✅ Успешно!',
+          description: data.message,
+          duration: 5000
+        });
+        
+        setEmail('');
+        setName('');
+        setSteamLogin('');
+        setCustomAmount('');
+        setSelectedAmount(500);
+      } else {
+        toast({
+          title: 'Ошибка',
+          description: 'Не удалось обработать запрос. Попробуйте снова.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка сети',
+        description: 'Проверьте подключение к интернету',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -152,6 +222,43 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="email" className="text-white mb-2 block">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-[#2a475e] border-[#66c0f4]/30 text-white placeholder:text-gray-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="name" className="text-white mb-2 block">Имя *</Label>
+                  <Input
+                    id="name"
+                    placeholder="Ваше имя"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="bg-[#2a475e] border-[#66c0f4]/30 text-white placeholder:text-gray-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="steamLogin" className="text-white mb-2 block">Логин Steam *</Label>
+                  <Input
+                    id="steamLogin"
+                    placeholder="steamuser123"
+                    value={steamLogin}
+                    onChange={(e) => setSteamLogin(e.target.value)}
+                    className="bg-[#2a475e] border-[#66c0f4]/30 text-white placeholder:text-gray-500"
+                    required
+                  />
+                </div>
+                
                 <div>
                   <Label className="text-white mb-3 block">Популярные суммы</Label>
                   <div className="grid grid-cols-3 gap-3">
@@ -206,11 +313,12 @@ const Index = () => {
                 </div>
 
                 <Button
-                  className="w-full bg-gradient-to-r from-[#66c0f4] to-[#8bc53f] text-[#171a21] font-bold text-lg py-6 hover:opacity-90 transition-opacity"
+                  className="w-full bg-gradient-to-r from-[#66c0f4] to-[#8bc53f] text-[#171a21] font-bold text-lg py-6 hover:opacity-90 transition-opacity disabled:opacity-50"
                   onClick={handleTopUp}
+                  disabled={isProcessing}
                 >
-                  <Icon name="CreditCard" className="mr-2" />
-                  Пополнить баланс
+                  <Icon name={isProcessing ? 'Loader2' : 'CreditCard'} className={`mr-2 ${isProcessing ? 'animate-spin' : ''}`} />
+                  {isProcessing ? 'Обработка...' : 'Пополнить баланс'}
                 </Button>
               </CardContent>
             </Card>
