@@ -7,7 +7,7 @@ from psycopg2.extras import RealDictCursor
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Process Steam balance top-up orders from customers
+    Business: Process game currency top-up orders (Steam, Roblox, PUBG Mobile, Mobile Legends, Free Fire)
     Args: event - dict with httpMethod, body, queryStringParameters
           context - object with attributes: request_id, function_name
     Returns: HTTP response dict with order status
@@ -48,7 +48,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             user_email = body_data.get('email', '')
             user_name = body_data.get('name', '')
-            steam_login = body_data.get('steamLogin', '')
+            game_login = body_data.get('gameLogin', '')
+            game_user_id = body_data.get('gameUserId', '')
+            game_type = body_data.get('gameType', 'steam')
             amount = int(body_data.get('amount', 0))
             
             bonus = 0
@@ -64,10 +66,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(
                     '''INSERT INTO orders 
-                       (user_email, user_name, steam_login, amount, bonus, total_amount, status, payment_method)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                       (user_email, user_name, game_login, game_user_id, game_type, amount, bonus, total_amount, status, payment_method)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                        RETURNING id, created_at''',
-                    (user_email, user_name, steam_login, amount, bonus, total_amount, 'processing', 'card')
+                    (user_email, user_name, game_login, game_user_id, game_type, amount, bonus, total_amount, 'processing', 'card')
                 )
                 result = cur.fetchone()
                 conn.commit()
@@ -92,11 +94,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({
                     'success': True,
                     'orderId': order_id,
+                    'gameType': game_type,
                     'amount': amount,
                     'bonus': bonus,
                     'totalAmount': total_amount,
                     'status': 'completed',
-                    'message': f'Баланс Steam успешно пополнен на {total_amount}₽',
+                    'message': f'Баланс успешно пополнен на {total_amount}₽',
                     'createdAt': created_at
                 }),
                 'isBase64Encoded': False
@@ -108,14 +111,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 if email:
                     cur.execute(
-                        '''SELECT id, user_email, user_name, steam_login, amount, bonus, 
+                        '''SELECT id, user_email, user_name, game_login, game_user_id, game_type, amount, bonus, 
                            total_amount, status, created_at, completed_at
                            FROM orders WHERE user_email = %s ORDER BY created_at DESC LIMIT 10''',
                         (email,)
                     )
                 else:
                     cur.execute(
-                        '''SELECT id, user_email, user_name, steam_login, amount, bonus, 
+                        '''SELECT id, user_email, user_name, game_login, game_user_id, game_type, amount, bonus, 
                            total_amount, status, created_at, completed_at
                            FROM orders ORDER BY created_at DESC LIMIT 50'''
                     )

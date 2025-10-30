@@ -7,7 +7,9 @@
       "body": {
         "email": "test@example.com",
         "name": "Тест Пользователь",
-        "steamLogin": "testuser123",
+        "gameLogin": "testuser123",
+        "gameUserId": "12345",
+        "gameType": "roblox",
         "amount": 1000
       },
       "expectedStatus": 200,

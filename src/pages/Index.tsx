@@ -17,7 +17,17 @@ const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-  const [steamLogin, setSteamLogin] = useState('');
+  const [gameLogin, setGameLogin] = useState('');
+  const [gameUserId, setGameUserId] = useState('');
+  const [selectedGame, setSelectedGame] = useState('steam');
+
+  const games = [
+    { id: 'steam', name: 'Steam', icon: 'Gamepad2', loginLabel: 'Логин Steam', userIdLabel: null },
+    { id: 'roblox', name: 'Roblox', icon: 'Boxes', loginLabel: 'Username Roblox', userIdLabel: 'User ID' },
+    { id: 'pubg', name: 'PUBG Mobile', icon: 'Target', loginLabel: 'Player ID', userIdLabel: null },
+    { id: 'mlbb', name: 'Mobile Legends', icon: 'Swords', loginLabel: 'User ID', userIdLabel: 'Zone ID' },
+    { id: 'freefire', name: 'Free Fire', icon: 'Flame', loginLabel: 'Player ID', userIdLabel: null },
+  ];
 
   const popularAmounts = [100, 300, 500, 1000, 2000, 5000];
 
@@ -86,7 +96,11 @@ const Index = () => {
   const faqs = [
     {
       question: 'Как быстро поступают средства?',
-      answer: 'Средства поступают на баланс Steam моментально после подтверждения оплаты. В среднем это занимает от 30 секунд до 5 минут.'
+      answer: 'Средства поступают на игровой баланс моментально после подтверждения оплаты. В среднем это занимает от 30 секунд до 5 минут.'
+    },
+    {
+      question: 'Какие игры поддерживаются?',
+      answer: 'Мы поддерживаем пополнение баланса в Steam, покупку Robux в Roblox, UC в PUBG Mobile, Diamond в Mobile Legends Bang Bang и Diamond в Free Fire.'
     },
     {
       question: 'Какие способы оплаты доступны?',
@@ -109,10 +123,20 @@ const Index = () => {
   const handleTopUp = async () => {
     const amount = customAmount ? parseInt(customAmount) : selectedAmount;
     
-    if (!email || !name || !steamLogin) {
+    if (!email || !name || !gameLogin) {
       toast({
         title: 'Заполните все поля',
-        description: 'Пожалуйста, укажите email, имя и логин Steam',
+        description: 'Пожалуйста, укажите email, имя и игровой логин',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    const currentGame = games.find(g => g.id === selectedGame);
+    if (currentGame?.userIdLabel && !gameUserId) {
+      toast({
+        title: 'Заполните все поля',
+        description: `Пожалуйста, укажите ${currentGame.userIdLabel}`,
         variant: 'destructive'
       });
       return;
@@ -138,7 +162,9 @@ const Index = () => {
         body: JSON.stringify({
           email,
           name,
-          steamLogin,
+          gameLogin,
+          gameUserId,
+          gameType: selectedGame,
           amount
         })
       });
@@ -154,7 +180,8 @@ const Index = () => {
         
         setEmail('');
         setName('');
-        setSteamLogin('');
+        setGameLogin('');
+        setGameUserId('');
         setCustomAmount('');
         setSelectedAmount(500);
       } else {
@@ -203,9 +230,12 @@ const Index = () => {
         <section id="topup" className="mb-20">
           <div className="text-center mb-12 animate-fade-in">
             <h2 className="text-5xl font-bold text-white mb-4">
-              Пополни свой Steam 🎮
+              Пополни игровой баланс 🎮
             </h2>
             <p className="text-xl text-gray-400">
+              Steam • Roblox • PUBG Mobile • Mobile Legends • Free Fire
+            </p>
+            <p className="text-lg text-gray-500 mt-2">
               Моментальное зачисление • Безопасные платежи • Бонусы к пополнению
             </p>
           </div>
@@ -222,6 +252,30 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div>
+                  <Label className="text-white mb-3 block">Выберите игру *</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {games.map((game) => (
+                      <Button
+                        key={game.id}
+                        variant={selectedGame === game.id ? 'default' : 'outline'}
+                        className={`flex items-center gap-2 ${selectedGame === game.id
+                            ? 'bg-gradient-to-r from-[#66c0f4] to-[#8bc53f] text-[#171a21] border-0'
+                            : 'bg-[#2a475e] border-[#66c0f4]/30 text-white hover:bg-[#66c0f4]/20'
+                        }`}
+                        onClick={() => {
+                          setSelectedGame(game.id);
+                          setGameLogin('');
+                          setGameUserId('');
+                        }}
+                      >
+                        <Icon name={game.icon as any} size={16} />
+                        {game.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="email" className="text-white mb-2 block">Email *</Label>
                   <Input
@@ -248,16 +302,34 @@ const Index = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="steamLogin" className="text-white mb-2 block">Логин Steam *</Label>
+                  <Label htmlFor="gameLogin" className="text-white mb-2 block">
+                    {games.find(g => g.id === selectedGame)?.loginLabel} *
+                  </Label>
                   <Input
-                    id="steamLogin"
-                    placeholder="steamuser123"
-                    value={steamLogin}
-                    onChange={(e) => setSteamLogin(e.target.value)}
+                    id="gameLogin"
+                    placeholder={`Введите ${games.find(g => g.id === selectedGame)?.loginLabel}`}
+                    value={gameLogin}
+                    onChange={(e) => setGameLogin(e.target.value)}
                     className="bg-[#2a475e] border-[#66c0f4]/30 text-white placeholder:text-gray-500"
                     required
                   />
                 </div>
+                
+                {games.find(g => g.id === selectedGame)?.userIdLabel && (
+                  <div>
+                    <Label htmlFor="gameUserId" className="text-white mb-2 block">
+                      {games.find(g => g.id === selectedGame)?.userIdLabel} *
+                    </Label>
+                    <Input
+                      id="gameUserId"
+                      placeholder={`Введите ${games.find(g => g.id === selectedGame)?.userIdLabel}`}
+                      value={gameUserId}
+                      onChange={(e) => setGameUserId(e.target.value)}
+                      className="bg-[#2a475e] border-[#66c0f4]/30 text-white placeholder:text-gray-500"
+                      required
+                    />
+                  </div>
+                )}
                 
                 <div>
                   <Label className="text-white mb-3 block">Популярные суммы</Label>
